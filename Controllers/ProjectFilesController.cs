@@ -15,10 +15,35 @@ namespace Updatehost.Controllers
             _env = env;
         }
 
+        protected long _Utc { get { return DateTime.Now.ToUniversalTime().Ticks; } }
         public IActionResult Utc() {
-            return Content(DateTime.Now.ToUniversalTime().Ticks.ToString(), "text/plain");
+            return Content(_Utc.ToString(), "text/plain");
         }
 
+        [HttpPut]
+        public IActionResult Index(string project, string filename) {
+            try {
+                var webRoot = _env.WebRootPath;
+                var path = Path.Combine(webRoot, "App_Data\\projects");
+                var projectPath = Path.Combine(webRoot, project);
+                var filePath = Path.Combine(projectPath, filename);
+
+                if(!Directory.Exists(projectPath))
+                    Directory.CreateDirectory(projectPath);
+                if(!Directory.Exists(filePath))
+                    Directory.CreateDirectory(filePath);
+
+                var versionPath = Path.Combine(filePath, _Utc.ToString());
+                var fileContents = (new System.IO.StreamReader(Request.Body) as TextReader).ReadToEnd();
+                System.IO.File.WriteAllText(versionPath, fileContents);
+
+                return Content("OK", "text/plain");
+            } catch(Exception ex) {
+                return Content(ex.Message, "text/plain");
+            }
+        }
+
+        [HttpGet]
         public IActionResult Index(string project, string filename = null, long? since = null, bool list = false)
         {
             if(project == "utc")
