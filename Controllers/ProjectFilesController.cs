@@ -15,8 +15,16 @@ namespace Updatehost.Controllers
             _env = env;
         }
 
+        public IActionResult Utc() {
+            return Content(DateTime.Now.ToUniversalTime().Ticks.ToString(), "text/plain");
+        }
+
         public IActionResult Index(string project, string filename = null, long? since = null, bool list = false)
         {
+            if(project == "utc")
+                // NB: This will hit here before the default routing, so manually return the method
+                return Utc();
+
             var webRoot = _env.WebRootPath;
 
             var path = Path.Combine(webRoot, "App_Data\\projects");
